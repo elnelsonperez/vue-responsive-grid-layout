@@ -36,15 +36,7 @@ export function findOrGenerateResponsiveLayout(
     compactType
 ) {
     let lastBreakpointLength;
-
-    if (layouts[breakpoint]) {
-        return cloneLayout(layouts[breakpoint])
-    }
-
-    // If there is wrongly given lastBreakpoint
-    if (layouts[lastBreakpoint]) {
-        lastBreakpointLength = layouts[lastBreakpoint].length;
-    }
+    let breakpointLength;
 
     const breakpointsSorted = sortBreakpoints(breakpoints);
 
@@ -57,10 +49,38 @@ export function findOrGenerateResponsiveLayout(
 
     const max = Math.max(...layoutsLength);
 
+    if (layouts[breakpoint]) {
+        breakpointLength = layouts[breakpoint].length;
+
+
+
+        if (max !== breakpointLength) {
+            for (let i = 0, len = breakpointsSorted.length; i < len; i++) {
+                const b = breakpointsSorted[i];
+                if (layouts[b]) {
+                    if (layouts[b].length === max) {
+                        if (b === breakpoint) {
+                            break;
+                        } else {
+                            breakpoint = b;
+                        }
+                    }
+                }
+            }
+        } else {
+            return cloneLayout(layouts[breakpoint])
+        }
+
+    }
+    // If there is wrongly given lastBreakpoint
+    if (layouts[lastBreakpoint]) {
+        lastBreakpointLength = layouts[lastBreakpoint].length;
+    }
+
     if (max !== lastBreakpointLength) {
         for (let i = 0, len = breakpointsSorted.length; i < len; i++) {
             const b = breakpointsSorted[i];
-            if (layouts.hasOwnProperty(b)) {
+            if (layouts[b]) {
                 if (layouts[b].length === max) {
                     if (b === lastBreakpoint) {
                         break;
@@ -97,4 +117,3 @@ export function sortBreakpoints(breakpoints) {
         return breakpoints[a] - breakpoints[b];
     });
 }
-
