@@ -6,17 +6,20 @@
                 breakpoint: {{ breakpoint}}
                 layouts: {{currentLayouts}}
                 <div class="pull-right">
-                    <div @click="switchLayout()" class="btn btn-md"><span class="glyphicon glyphicon-share-alt"></span></div>
+		    <div @click="switchLayout()" class="btn btn-md"><span class="glyphicon glyphicon-share-alt"></span></div>
                     <div @click="gridMode()" class="btn btn-md"><span class="glyphicon glyphicon-th-large"></span></div>
                     <div @click="listMode()" class="btn btn-md"><span class="glyphicon glyphicon-list"></span></div>
                 </div>
             </div>
             <vue-responsive-grid-layout
-                    @layout-height-updated="updateLayoutAfterHeightUpdate"
+                    @layout-item-height-updated="updateItemHeight"
+                    @layout-height-updated="layoutHeightUpdated"
+                    @layout-generated="generateLayout"
+                    @layout-item-resized="resizeItem"
                     @layout-update="updateLayout"
                     @layout-ready="readyLayout"
                     @layout-change="changeLayout"
-                    @layout-switched="onLayoutSwitched"
+		            @layout-switched="onLayoutSwitched"
                     @layout-init="initLayout"
                     @layout-resized="resizedLayout"
                     @width-init="initWidth"
@@ -30,28 +33,28 @@
                     :breakpoint="breakpoint"
                     :breakpoints="breakpoints"
                     :colsAll="colsAll"
-                    :makeUpdateOnInit="true"
+                    :queueJobs="true"
                     ref="layout"
             >
                 <template slot-scope="props">
                     <vue-grid-item
-                            v-for="item in props.layout"
-                            v-if="item.i"
-                            :key="item.i"
-                            :x="item.x"
-                            :y="item.y"
-                            :w="item.w"
-                            :h="item.h"
-                            :i="item.i"
-                            :cols="props.cols"
-                            :containerWidth="props.containerWidth"
-                            :component="components[item.i].component"
-                            :componentProps="{ id : item.i}"
-                            :defaultSize="components[item.i].defaultSize"
-                            :isDraggable="isDraggable"
-                            :isResizable="isResizable"
-                            :heightFromChildren="true"
-                            :canBeResizedWithAll="true"
+                        v-for="item in props.layout"
+                        v-if="item.i"
+                        :key="item.i"
+                        :x="item.x"
+                        :y="item.y"
+                        :w="item.w"
+                        :h="item.h"
+                        :i="item.i"
+                        :cols="props.cols"
+                        :containerWidth="props.containerWidth"
+                        :component="components[item.i].component"
+                        :componentProps="{ id : item.i}"
+                        :defaultSize="components[item.i].defaultSize"
+                        :isDraggable="isDraggable"
+                        :isResizable="isResizable"
+                        :heightFromChildren="true"
+                        :canBeResizedWithAll="true"
                     >
                     </vue-grid-item>
                 </template>
@@ -61,144 +64,180 @@
 </template>
 
 <script type="text/javascript">
-    import {VueResponsiveGridLayout, VueGridItem } from '../src/index.js'
+ import {VueResponsiveGridLayout, VueGridItem } from '../src/index.js'
 
-    export default{
-        data() {
-            return {
-                layouts: {
-                    1 : {
-                        "lg": [
-                            { x: 0, y: 0, w: 2, h: 3, i: "1"},
-                            { x: 2, y: 0, w: 2, h: 3, i: "2"},
-                            { x: 4, y: 0, w: 2, h: 3, i: "3"},
-                            { x: 0, y: 3, w: 2, h: 3, i: "4"}
-                        ]
-                    },
-                    2: {
-                        "lg": [
-                            { x: 0, y: 0, w: 2, h: 3, i: "1"},
-                            { x: 2, y: 0, w: 2, h: 3, i: "2"},
-                        ]
-                    }
+export default{
+    data() {
+        return {
+            layouts: {
+                1 : {
+                    "lg": [
+                        { x: 0, y: 0, w: 2, h: 3, i: "1"},
+                        { x: 2, y: 0, w: 2, h: 3, i: "2"},
+                        { x: 4, y: 0, w: 2, h: 3, i: "3"},
+                        { x: 0, y: 3, w: 2, h: 3, i: "4"}
+                    ]
                 },
-                currentLayoutsId: 1,
-                breakpoint: "lg",
-                components: {
-                    "1": { i: "1", component: "example-component", defaultSize: 2},
-                    "2": { i: "2", component: "example-component", defaultSize: 2},
-                    "3": { i: "3", component: "example-component", defaultSize: 2},
-                    "4": { i: "4", component: "example-component", defaultSize: 2},
-                },
-                cols: 10,
-                breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 },
-                colsAll: { lg: 10, md: 8, sm: 6, xs: 4, xxs: 2 },
-                isDraggable: true,
-                isResizable: true,
-            }
-        },
-        computed: {
-            currentLayouts: {
-                get() {
-                    return this.layouts[this.currentLayoutsId];
-                },
-                set(val) {
-                    this.$set(this.layouts, this.currentLayoutsId, val);
+                2: {
+                    "lg": [
+                        { x: 0, y: 0, w: 2, h: 3, i: "1"},
+                        { x: 2, y: 0, w: 2, h: 3, i: "2"},
+                    ]
                 }
+            },
+            currentLayoutsId: 1,
+            breakpoint: "lg",
+            components: {
+                "1": { i: "1", component: "example-component", defaultSize: 2},
+                "2": { i: "2", component: "example-component", defaultSize: 2},
+                "3": { i: "3", component: "example-component", defaultSize: 2},
+                "4": { i: "4", component: "example-component", defaultSize: 2},
+            },
+            cols: 10,
+            breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 },
+            colsAll: { lg: 10, md: 8, sm: 6, xs: 4, xxs: 2 },
+            isDraggable: true,
+            isResizable: true,
+        }
+    },
+    computed: {
+        currentLayouts: {
+            get() {
+                return this.layouts[this.currentLayoutsId];
+            },
+            set(val) {
+                this.$set(this.layouts, this.currentLayoutsId, val);
             }
+        }
+    },
+    components: {
+        'vue-responsive-grid-layout': VueResponsiveGridLayout,
+        'vue-grid-item': VueGridItem
+    },
+    methods: {
+        updateItemHeight({layout, callback}) {
+            let filtered;
+            filtered = layout.map( (item) => { return { x: item.x, y: item.y, w: item.w, h: item.h, i: item.i }})
+
+            this.currentLayouts[this.breakpoint] = filtered;
+
+            this.$nextTick( () => {
+                callback();
+            })
+
         },
-        components: {
-            'vue-responsive-grid-layout': VueResponsiveGridLayout,
-            'vue-grid-item': VueGridItem
+        layoutHeightUpdated () {
+            console.log('layout updated')
         },
-        methods: {
-            initLayout({layout, cols, layouts, breakpoint}) {
-                this.cols = cols;
-                let filtered;
-                filtered = layout.map( (item) => { return { x: item.x, y: item.y, w: item.w, h: item.h, i: item.i }})
 
-                this.currentLayouts[breakpoint] = filtered;
-            },
-            initWidth({width}) {
-                this.containerWidth = width;
-            },
-            readyLayout() {
-                this.$refs.layout.initLayout();
-            },
-            switchLayout() {
-                switch(this.currentLayoutsId) {
-                    case 1:
-                        this.currentLayoutsId = 2;
-                        this.$nextTick( (() => {
-                            this.$refs.layout.updateItemsHeight(false);
-                        }))
-                        break;
-                    case 2:
-                        this.currentLayoutsId = 1;
-                        this.$nextTick( (() => {
-                            this.$refs.layout.updateItemsHeight(false);
-                        }))
-                        break;
-                }
+        generateLayout({layouts, mode}) {
+            this.currentLayouts = layouts;
 
-            },
-            onLayoutSwitched({layout, layouts, breakpoint}) {
-                this.currentLayouts = layouts;
-                this.currentLayouts[breakpoint] = layout;
-            },
-            changeWidth({width, cols}) {
-                this.containerWidth = width;
-                this.cols = cols;
-
+            if (mode === true) {
                 this.$nextTick( () => {
                     this.$refs.layout.updateItemsHeight(true);
-                })
-            },
-            updateLayout({layout, breakpoint}) {
-                let filtered;
-                filtered = layout.map( (item) => { return { x: item.x, y: item.y, w: item.w, h: item.h, i: item.i }})
-
-                this.currentLayouts[breakpoint] = filtered;
-
-            },
-            changeBreakpoint({breakpoint, cols}) {
-                this.cols = cols;
-                this.breakpoint = breakpoint;
-            },
-
-            changeLayout({layout}) {
-                let filtered;
-                filtered = layout.map( (item) => { return { x: item.x, y: item.y, w: item.w, h: item.h, i: item.i }})
-                this.currentLayouts[this.breakpoint] = filtered;
-            },
-
-            gridMode() {
-                this.$refs.layout.resizeAllItems(false, false);
-            },
-
-            listMode() {
-                this.$refs.layout.resizeAllItems(true, false);
-            },
-            resizedLayout({layouts: layouts, layout: layout}) {
-                let filtered;
-                filtered = layout.map( (item) => { return { x: item.x, y: item.y, w: item.w, h: item.h, i: item.i }})
-
-                this.currentLayouts[this.breakpoint] = filtered;
-
+                });
+            } else {
                 this.$nextTick( () => {
-                    this.$refs.layout.updateItemsHeight(true);
+                    this.$refs.layout.updateItemsHeight(false);
                 })
-            },
-
-            updateLayoutAfterHeightUpdate({layouts: layouts, layout: layout}) {
-                let filtered;
-                filtered = layout.map( (item) => { return { x: item.x, y: item.y, w: item.w, h: item.h, i: item.i }})
-
-                this.currentLayouts[this.breakpoint] = filtered;
             }
+
         },
 
-    }
+        resizeItem({layout, callback}) {
+            let filtered;
+            filtered = layout.map( (item) => { return { x: item.x, y: item.y, w: item.w, h: item.h, i: item.i }})
+
+            this.currentLayouts[this.breakpoint] = filtered;
+
+            this.$nextTick( () => {
+                callback();
+            })
+
+        },
+
+        initLayout({layout, cols, layouts, breakpoint}) {
+            this.cols = cols;
+            let filtered;
+            filtered = layout.map( (item) => { return { x: item.x, y: item.y, w: item.w, h: item.h, i: item.i }})
+
+            this.currentLayouts[breakpoint] = filtered;
+
+            this.$nextTick( () => {
+                this.$refs.layout.updateItemsHeight(true);
+            })
+        },
+        initWidth({width}) {
+            this.containerWidth = width;
+        },
+        readyLayout() {
+            console.log('ready')
+            this.$refs.layout.initLayout();
+        },
+        switchLayout() {
+            switch(this.currentLayoutsId) {
+                case 1:
+                    this.currentLayoutsId = 2;
+                    this.$nextTick( (() => {
+                        this.$refs.layout.updateItemsHeight(false);
+                    }))
+                    break;
+                case 2:
+                    this.currentLayoutsId = 1;
+                    this.$nextTick( (() => {
+                        this.$refs.layout.updateItemsHeight(false);
+                    }))
+
+                    // this.$refs.layout.switchLayout(this.currentLayouts);
+                    break;
+            }
+
+        },
+        onLayoutSwitched({layout, layouts, breakpoint}) {
+            console.log('layout switched')
+            this.currentLayouts = layouts;
+            this.currentLayouts[breakpoint] = layout;
+        },
+        changeWidth({width, cols}) {
+            this.containerWidth = width;
+            this.cols = cols;
+        },
+        updateLayout({layout, breakpoint}) {
+            console.log('layoutUpdated', layout)
+            let filtered;
+            filtered = layout.map( (item) => { return { x: item.x, y: item.y, w: item.w, h: item.h, i: item.i }})
+
+            this.currentLayouts[breakpoint] = filtered;
+
+        },
+        changeBreakpoint({breakpoint, cols}) {
+            this.cols = cols;
+            this.breakpoint = breakpoint;
+        },
+
+        changeLayout({layout}) {
+            let filtered;
+            filtered = layout.map( (item) => { return { x: item.x, y: item.y, w: item.w, h: item.h, i: item.i }})
+            this.currentLayouts[this.breakpoint] = filtered;
+        },
+
+        gridMode() {
+            this.$refs.layout.resizeAllItems(false, false);
+        },
+
+        listMode() {
+            this.$refs.layout.resizeAllItems(true, false);
+        },
+        resizedLayout() {
+            console.log('layout resized')
+            this.$nextTick( (() => {
+                this.$refs.layout.updateItemsHeight(true);
+            }))
+        },
+    },
+
+}
 </script>
 
 <style>

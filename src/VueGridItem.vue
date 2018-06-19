@@ -253,12 +253,12 @@
         watch:{
             w(val) {
                 if (val && (!this.placeholder && this.isResizable)) {
-                    this.$refs.resize.width = this.calcWidth();
+                    this.$refs.resize.width = parseInt(this.calcWidth());
                 }
             },
             h(val) {
                 if (val && (!this.placeholder && this.isResizable)) {
-                    this.$refs.resize.height = this.calcHeight();
+                    this.$refs.resize.height = parseInt(this.calcHeight());
                 }
             }
         },
@@ -450,7 +450,10 @@
                     }
 
 
-                    const { x, y } = this.calcXY(newPosition.top, newPosition.left);
+                    let newPos = this.calcXY(newPosition.top, newPosition.left);
+
+                    const x = parseInt(newPos.x);
+                    const y = parseInt(newPos.y);
 
 
                     eventBus.$emit(handlerName, this, this.i, x, y, { e, node, newPosition });
@@ -471,8 +474,8 @@
                         newPos = this.calcWH(size);
                     }
 
-                    let w = newPos.w;
-                    let h = newPos.h;
+                    let w = parseInt(newPos.w);
+                    let h = parseInt(newPos.h);
 
 
                     // Cap w at numCols
@@ -491,83 +494,94 @@
 
                 };
             },
-            calcNewHeight(pos, layout, callback) {
-                const item = layout.find(item => item.i === this.i);
+
+            calcNewHeight(pos, i = false) {
 
                 if (this.$refs.item) {
 
                     this.componentHeight = Math.ceil(this.$refs.item.$el.offsetHeight);
 
-                    let { w, h } = this.calcWH({ height: this.componentHeight, width: pos.width });
+                    let {w, h} = this.calcWH({ height: this.componentHeight, width: pos.width });
 
-                    eventBus.$emit('onResizeItem', item.i, w, h, 'updateHeight', layout, callback);
+                    if (i === false) {
+                        this.$nextTick(() => {
+                            eventBus.$emit('updateHeight', this.i, w, h);
+                        });
+                    } else if( i === this.i) {
+                        this.$nextTick(() => {
+                            eventBus.$emit('updateHeight' + this.i, this.i, w, h);
+                        });
+                    }
+
                 } else {
                     if(this.$slots) {
                         if (this.$slots.default) {
                             if (this.$slots.default.length > 0) {
                                 this.componentHeight = Math.ceil(this.$slots.default[0].elm.offsetHeight);
 
-                                let { w, h } = this.calcWH({ height: this.componentHeight, width: pos.width });
+                                let {w, h} = this.calcWH({ height: this.componentHeight, width: pos.width });
 
-                                eventBus.$emit('onResizeItem', item.i, w, h, 'updateHeight', layout, callback);
+                                if (i === false) {
+                                    this.$nextTick(() => {
+                                        eventBus.$emit('updateHeight', this.i, w, h);
+                                    });
+                                } else if( i === this.i) {
+                                    this.$nextTick(() => {
+                                        eventBus.$emit('updateHeight' + this.i, this.i, w, h);
+                                    });
+                                }
                             }
                         }
                     }
                 }
             },
-            onHeightUpdated(layouts, layout, callback) {
+
+            onHeightUpdated(i = false) {
                 if (!this.placeholder) {
-                    const item = layout.find(item => item.i === this.i);
                     if(this.heightFromChildren) {
-                        this.updateHeight(layouts, layout, callback);
+                        this.updateHeight(i);
                     } else {
-                        eventBus.$emit('onResizeItem', item.i, item.w, item.h, 'updateHeight', layout, callback);
+                        if (i === false) {
+                            this.$nextTick(() => {
+                                eventBus.$emit('updateHeight', this.i, this.w, this.h);
+                            });
+                        } else if( i === this.i) {
+                            this.$nextTick(() => {
+                                eventBus.$emit('updateHeight' + this.i, this.i, this.w, this.h);
+                            });
+                        }
                     }
                 }
             },
-            updateHeight(layouts, layout, callback) {
-                const item = layout.find(item => item.i === this.i);
 
-                let pos = this.calcPosition(item.x, item.y, item.w, item.h);
+            updateHeight(i = false) {
+
+                let pos = this.calcPosition(this.x, this.y, this.w, this.h);
 
                 this.$nextTick(() => {
-                    this.calcNewHeight(pos, layout, callback);
+                    this.calcNewHeight(pos, i);
                 });
             },
-            onResizeItems(width, layout, id, callback) {
 
+            onResizeItem(width, id) {
                 if ((!this.placeholder && id === this.i)) {
-
-                    const item = layout.find(item => item.i === this.i);
-
-                    if (this.canBeResizedWithAll) {
-
+                    if (this.canBeResizedWithAll === true) {
                         if (width === this.cols) {
                             this.$nextTick(() => {
-                                eventBus.$emit('onMoveItem', item.i, 0, 0, "vertical", layout, ({layout, oldLayout, layouts}) => {
-                                    const item = layout.find(item => item.i === this.i);
-                                    eventBus.$emit('onResizeItem', item.i, width, item.h, 'resizeAll', layout, callback);
-                                });
+                                eventBus.$emit('resizeItem' + id, this.i, 0, 0, width, this.h, "vertical");
                             });
                         } else if (!width) {
                             this.$nextTick(() => {
-                                eventBus.$emit('onResizeItem', item.i, this.defaultSize, item.h, 'resizeAll', layout, ({layout, oldLayout, layouts}) => {
-                                    const item = layout.find(item => item.i === this.i);
-                                    eventBus.$emit('onMoveItem', item.i, 0, 0, "horizontal", layout, callback);
-                                });
+                                eventBus.$emit('resizeItem' + id, this.i, 0, 0, this.defaultSize, this.h, "vertical");
                             });
                         } else {
                             this.$nextTick(() => {
-                                eventBus.$emit('onResizeItem', item.i, width, item.h, 'resizeAll', layout, ({layout, oldLayout, layouts}) => {
-                                    const item = layout.find(item => item.i === this.i);
-                                    eventBus.$emit('onMoveItem', item.i, 0, 0, "horizontal", layout, callback);
-                                });
+                                eventBus.$emit('resizeItem' + id, this.i, 0, 0, width, this.h, "vertical");
                             });
                         }
                     } else {
-                        eventBus.$emit('onMoveItem', item.i, 0, 0, "vertical", layout, ({layout, oldLayout, layouts}) => {
-                            const item = layout.find(item => item.i === this.i);
-                            eventBus.$emit('onResizeItem', item.i, item.w, item.h, 'resizeAll', layout, callback);
+                        this.$nextTick(() => {
+                            eventBus.$emit('resizeItem' + id, this.i, 0, 0, this.w, this.h, "vertical");
                         });
                     }
                 }
@@ -580,7 +594,7 @@
             this.maxH = Infinity;
 
             eventBus.$on('updateItemsHeight', this.onHeightUpdated)
-            eventBus.$on('resizeAllItems', this.onResizeItems)
+            eventBus.$on('resizeItems', this.onResizeItem)
         },
         mounted() {
             this.mounted = true;
@@ -589,7 +603,7 @@
         beforeDestroy() {
             this.mounted = false;
             eventBus.$off('updateItemsHeight', this.onHeightUpdated)
-            eventBus.$off('resizeAllItems', this.onResizeItems)
+            eventBus.$off('resizeItems', this.onResizeItem)
         },
     }
 </script>
