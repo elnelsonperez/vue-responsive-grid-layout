@@ -1,4 +1,5 @@
-# VueResponsiveGridLayout
+# VueResponsiveGridLayout 1.1.0
+
 Responsive draggable and resizable grid layout for VueJS.
 Its responsiveness is based on breakpoints (similar to Bootstrap).
 
@@ -31,24 +32,23 @@ Vue.component('vue-grid-item', VueGridItem)
 ```
 
 # API
-```
-FIX to responsivness
 
-watch: {
-    layouts: {
-        handler: function(val, oldVal) {
-            this.prepareLayoutsFromProps(this.layouts);
-        },
-        deep: true
-    },
-},
+Because of issues with reactiveness and making layout synchronized.
 
-Layouts from props are deeply watched and currentLayout in component is synchronized with it.
+VueResponsiveGridLayout has no own state from now and it is based on prop state only.
+
 It grants us ability to make layouts reactive and make the layouts possible to work with Vuex.
-```
 
+This approach is recommended by VueJS creators and you can read more about it here:
+- https://vuejs.org/v2/guide/components.html#Passing-Data-to-Child-Components-with-Props
+- https://vuejs.org/v2/guide/components.html#Sending-Messages-to-Parents-with-Events
 
-DEPREACTED
+DELETED
+
+~~FIX to responsivness~~
+
+~~Layouts from props are deeply watched and currentLayout in component is synchronized with it.~~
+~~It grants us ability to make layouts reactive and make the layouts possible to work with Vuex.~~
 
 ~~EDIT: FIX to Desynchronitizing~~
 
@@ -136,8 +136,7 @@ disabled: {
     type: Boolean,
     default: false
 },
-
-makeUpdateOnWidthChange: {
+makeUpdateOnInit: {
     required: false,
     type: Boolean,
     default: true
@@ -216,8 +215,11 @@ Default VueResponsiveGridLayout.
 ### disabled
 When disabled, layout is not updating its state with props.
 
-### makeUpdateOnWidthChange
-When width is changed this props grants the updateLayout event call additionally
+~~### makeUpdateOnWidthChange~~ - deleted due to changes on layout state.
+~~When width is changed this props grants the updateLayout event call additionally~~
+
+### makeUpdateOnInit
+When layout is inited this prop is making updateItemsHeight() automatically.
 
 ## Events VueResponsiveGridLayout
 
@@ -229,25 +231,25 @@ There is no more this event. It's `@layout-ready` now.
 
 This event is emitted when layouts object from props is ready to `initLayout()`.
 
-### @layout-not-ready()
+~~### @layout-not-ready()~~
 
-This event is emitted when layouts object is empty or null. `initLayout()` is not available.
+~~This event is emitted when layouts object is empty or null. `initLayout()` is not available.~~
 
-### @layout-init({layout, cols})
+### @layout-init({layout, layouts, cols, breakpoint})
 
 This event is emitted when layout is inited, after `initLayout()` function.
 
 ### @layout-init-fail()
 
-This event is emitted when layout is not inited due to error.
+This event is emitted when layout is not inited due to error when `makeUpdateOnInit` is true.
 
-### @layout-switched({layout, cols, breakpoint, layouts})
+~~### @layout-switched({layout, cols, breakpoint, layouts})~~ - deleted due to deleting switchLayout method
 
-Grants information that layouts object was switched.
+~~Grants information that layouts object was switched.~~
 
-### @layout-switched-failed()
+~~### @layout-switched-failed()~~ - deleted due to deleting switchLayout
 
-This event is emitted when there was an error with switching.
+~~This event is emitted when there was an error with switching.~~
 
 ### @layout-synchronize({ layout, layouts})
 
@@ -262,7 +264,7 @@ This event is emitted when there was an error with synchronize.
 Emitted after breakpoint is changed. 
 It occurs when width is changed (window is resized etc.). 
 
-### @layout-change({layout, layouts})
+### @layout-change({layout, layouts, breakpoint})
 
 Emitted when layout is changed with `onWidthChange()`
 
@@ -270,9 +272,9 @@ Emitted when layout is changed with `onWidthChange()`
 
 Emitted after width of window is changed the.
 
-### @width-change-failed()
+~~### @width-change-failed()~~ - deleted due to layouts taken from prop
 
-Emitted after width changing is failed.
+~~Emitted after width changing is failed.~~
 
 ### @layout-height-updated({layout, layouts})
 
@@ -286,9 +288,9 @@ Emitted after there were errors with layout height updating.
 
 Grants information that all gridItems was resized with `resizeAllItems`.
 
-### @layout-resized-failed()
+~~### @layout-resized-failed()~~ - deleted due not to calling `updateItemsHeight` automatically anymore.
 
-Emitted after there were errors with layout resizing.
+~~Emitted after there were errors with layout resizing.~~
 
 ### @width-init({width})
 
@@ -319,10 +321,10 @@ Function resizes all grid-items width based on arguments.
 * If mode is `true` and cols is `false`, then every grid-item gets width of the whole component.
 * If cols is a number it makes every grid-item to get width represented by cols. 
 
-### switchLayout(newLayouts)
+~~### switchLayout(newLayouts)~~ - deleted layouts are taken from prop directly.
 
-Function grants abbility to change layouts object to new one.
-It's good when we have more dashboards or something.
+~~Function grants abbility to change layouts object to new one.~~
+~~It's good when we have more dashboards or something.~~
 
 ## Props VueGridItem
 
@@ -496,12 +498,12 @@ Props for ResizableProps inside `vue-grid-item`.
 Props for DraggableCore inside `vue-grid-item`.
 
 ### noTouchAction
-If false, grantstouch-action: none; style to component. Preventing from scrolling on mobile devices.
+If false, grants `touch-action: none;` style to component. Preventing from scrolling on mobile devices.
 
 Attention! : Be careful when using this prop. You can make scrolling off on mobile devices.
 
 ### touchAction
-Define which touchAction are added. Default none;
+Define which touchAction are added. Default `none;`
 
 ### heightFromChildren
 
