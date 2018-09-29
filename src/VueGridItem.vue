@@ -70,7 +70,7 @@
     props: {
       minW: {
         type: Number,
-        default: 1
+        default: 2
       },
       maxW: {
         type: Number,
@@ -78,11 +78,11 @@
       },
       minH: {
         type: Number,
-        default: 1
+        default: 2
       },
       maxH: {
         type: Number,
-        default: 1
+        default: Infinity
       },
       resizableProps : {
         type: Object,
