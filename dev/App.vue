@@ -1,6 +1,5 @@
 <template>
     <div id="wrapper" style="align-items: stretch;width: 100%; height: 100%;">
-
         <div style="height: 30px;">
             <div class="pull-right">
                 <div @click="switchLayout()" class="btn btn-md"><span class="glyphicon glyphicon-share-alt"></span></div>
@@ -11,22 +10,18 @@
         <vue-responsive-grid-layout
                 @layout-update="updateLayout"
                 @layout-change="changeLayout"
-                @layout-switched="onLayoutSwitched"
-                @layout-ready="readyLayout"
                 @layout-init="initLayout"
-                @layout-resized="resizedLayout"
-                @width-init="initWidth"
                 @width-change="changeWidth"
                 @breakpoint-change="changeBreakpoint"
-                :layouts="currentLayouts"
+                :layouts="layout"
                 :cols="cols"
                 :compact-type="'vertical'"
                 :vertical-compact="true"
-                :init-on-start="false"
+                :init-on-start="true"
                 :breakpoint="breakpoint"
                 :breakpoints="breakpoints"
                 :cols-all="colsAll"
-                ref="layout"
+                ref="grid"
         >
             <template slot-scope="props">
                 <vue-grid-item
@@ -68,23 +63,14 @@
     data (){
 
       return {
-        layouts: {
-          1 : {
-            "lg": [
-              { x: 0, y: 0, w: 2, h: 9, i: "1"},
-              { x: 2, y: 0, w: 2, h: 6, i: "2"},
-              { x: 4, y: 0, w: 2, h: 8, i: "3"},
-              { x: 0, y: 3, w: 2, h: 5, i: "4"}
-            ]
-          },
-          2: {
-            "lg": [
-              { x: 0, y: 0, w: 2, h: 7, i: "1"},
-              { x: 2, y: 0, w: 2, h: 7, i: "2"},
-            ]
-          }
+        layout: {
+          "lg": [
+            { x: 0, y: 0, w: 2, h: 9, i: "1"},
+            { x: 2, y: 0, w: 2, h: 6, i: "2"},
+            { x: 4, y: 0, w: 2, h: 8, i: "3"},
+            { x: 0, y: 3, w: 2, h: 5, i: "4"},
+          ]
         },
-        currentLayoutsId: 1,
         breakpoint: "lg",
         cols: 10,
         breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 },
@@ -95,34 +81,12 @@
     },
     computed: {
       currentLayouts() {
-        return this.layouts[this.currentLayoutsId];
+        return this.layout;
       }
     },
     methods: {
-      readyLayout() {
-        console.log('layout ready');
-        this.$refs.layout.initLayout();
-      },
       initLayout({layout, cols}) {
         this.cols = cols;
-      },
-      initWidth({width}) {
-        this.containerWidth = width;
-      },
-      switchLayout() {
-        switch(this.currentLayoutsId) {
-          case 1:
-            this.currentLayoutsId = 2;
-            this.$refs.layout.switchLayout(this.currentLayouts);
-            break;
-          case 2:
-            this.currentLayoutsId = 1;
-            this.$refs.layout.switchLayout(this.currentLayouts);
-            break;
-        }
-      },
-      onLayoutSwitched() {
-        console.log('layouts switched')
       },
       changeWidth({width, newCols}) {
         this.containerWidth = width;
@@ -131,7 +95,7 @@
       updateLayout({layout, breakpoint}) {
         let filtered;
         filtered = layout.map( (item) => { return { x: item.x, y: item.y, w: item.w, h: item.h, i: item.i }})
-        this.layouts[breakpoint] = filtered;
+        this.layout[breakpoint] = filtered;
       },
       changeBreakpoint({breakpoint, cols}) {
         this.cols = cols;
@@ -140,17 +104,14 @@
       changeLayout({layout, breakpoint}) {
         let filtered;
         filtered = layout.map( (item) => { return { x: item.x, y: item.y, w: item.w, h: item.h, i: item.i }})
-        this.layouts[breakpoint] = filtered;
+        this.layout[breakpoint] = filtered;
       },
       gridMode() {
-        this.$refs.layout.resizeAllItems(false, false);
+        this.$refs.grid.resizeAllItems(false, false);
       },
       listMode() {
-        this.$refs.layout.resizeAllItems(true, false);
+        this.$refs.grid.resizeAllItems(true, false);
       },
-      resizedLayout() {
-        console.log('layout resized')
-      }
     },
   }
 </script>
@@ -170,27 +131,6 @@
         transition: all 0.3s;
         width: 100%;
     }
-
-    .resizable-handle {
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        bottom: 0;
-        right: 0px;
-        text-align: right;
-    }
-
-    .resizable-handle::after {
-        content: "";
-        position: absolute;
-        right: 3px;
-        bottom: 3px;
-        width: 5px;
-        height: 5px;
-        border-right: 2px solid #FFFFFF;
-        border-bottom: 2px solid #FFFFFF;
-    }
-
     .panel-100-height {
         height: 100%;
     }
