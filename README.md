@@ -327,6 +327,22 @@ It's good when we have more dashboards or something.
 ## Props VueGridItem
 
 ```
+minW: {
+  type: Number,
+  default: 1
+},
+maxW: {
+  type: Number,
+  default: Infinity
+},
+minH: {
+  type: Number,
+  default: 1
+},
+maxH: {
+  type: Number,
+  default: 1
+},
 resizableProps : {
     type: Object,
     required: false
