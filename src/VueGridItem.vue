@@ -68,6 +68,14 @@
       }
     },
     props: {
+      onDragTopCorrection: {
+        type: Number,
+        default: 0
+      },
+      onDragLeftCorrection: {
+        type: Number,
+        default: 0
+      },
       minW: {
         type: Number,
         default: 2
@@ -435,9 +443,9 @@
               const clientRect = node.getBoundingClientRect();
 
               newPosition.left =
-                  clientRect.left - parentRect.left + offsetParent.scrollLeft;
+                  clientRect.left - parentRect.left + offsetParent.scrollLeft  + this.onDragLeftCorrection;
               newPosition.top =
-                  clientRect.top - parentRect.top + offsetParent.scrollTop;
+                  clientRect.top - parentRect.top + offsetParent.scrollTop + this.onDragTopCorrection;
 
               this.dragging = newPosition;
 
